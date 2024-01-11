@@ -343,6 +343,7 @@ function createStreamParserOpenAI(): AIStreamParser {
 
   return (data: string) => {
 
+    console.log('OpenAI data:', data);
     const json: OpenAIWire.ChatCompletion.ResponseStreamingChunk = JSON.parse(data);
 
     // [OpenAI] an upstream error will be handled gracefully and transmitted as text (throw to transmit as 'error')

@@ -9,7 +9,7 @@ export type DiffBlock = { type: 'diff'; textDiffs: TextDiff[] };
 export type HtmlBlock = { type: 'html'; html: string; };
 export type ImageBlock = { type: 'image'; url: string; alt?: string }; // Added optional alt property
 export type LatexBlock = { type: 'latex'; latex: string; };
-export type TextBlock = { type: 'text'; content: string; }; // for Text or Markdown
+export type TextBlock = { type: 'text'; content: string; options?: string[]; placeholders?: string[]; };
 
 
 export function parseBlocks(text: string, forceText: boolean, textDiffs: TextDiff[] | null): Block[] {

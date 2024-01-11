@@ -16,11 +16,35 @@ import { createAssistantTypingMessage, updatePurposeInHistory } from './editors'
  */
 export async function runAssistantUpdatingState(conversationId: string, history: DMessage[], assistantLlmId: DLLMId, systemPurpose: SystemPurposeId) {
 
+  // check if history contains less than 5 messages with the role 'user'
+  const isFirstMessages = history.filter(m => m.role === 'user').length < 5;
+  let prompt = '';
+
+
+  if (isFirstMessages) {
+    prompt = `
+      You are an AI trained to assist users by asking clarifying questions. When a user asks a question, respond with a follow-up question to gather more information. Provide potential answers in the form of options enclosed in {optiontext1}, {optiontext2}, ...
+      Also act like a very good friend. Be empathetic and supportive. start broadly and then narrow down to the specifics. however, do not be to chaty.
+      Here is the user's question:
+      "${history[0].text}"
+      Based on this question, what follow-up question would you ask?
+    `;
+
+  } else {
+    // Construct the standard prompt for non-first messages
+    prompt = `... (standard prompt construction logic)`;
+  }
+
+
   // ai follow-up operations (fire/forget)
   const { autoSpeak, autoSuggestDiagrams, autoSuggestQuestions, autoTitleChat } = getChatAutoAI();
 
   // update the system message from the active Purpose, if not manually edited
   history = updatePurposeInHistory(conversationId, history, assistantLlmId, systemPurpose);
+
+  // if isFirstMessage, override the system message with the prompt
+  if (isFirstMessages && history[0].role === 'system')
+    history[0].text = prompt;
 
   // create a blank and 'typing' message for the assistant
   const assistantMessageId = createAssistantTypingMessage(conversationId, assistantLlmId, history[0].purposeId, '...');
@@ -38,6 +62,9 @@ export async function runAssistantUpdatingState(conversationId: string, history:
     controller.signal,
   );
 
+  // conversation is done, clear the abort controller
+  controller.abort();
+
   // clear to send, again
   startTyping(conversationId, null);
 
@@ -47,6 +74,28 @@ export async function runAssistantUpdatingState(conversationId: string, history:
   if (autoSuggestDiagrams || autoSuggestQuestions)
     autoSuggestions(conversationId, assistantMessageId, autoSuggestDiagrams, autoSuggestQuestions);
 }
+
+// Function to parse the LLM's response and extract options with placeholders
+function parseLLMResponse(responseText: string): { options: string[], placeholders: string[] } {
+  const optionRegex = /\{(.*?)\}/g; // Adjusted regex to match your pattern
+  let match;
+  const options = [];
+  const placeholders = [];
+  let text = responseText;
+  let placeholderIndex = 0;
+
+  while ((match = optionRegex.exec(responseText)) !== null) {
+    const optionText = match[1];
+    const placeholder = `{{option_${placeholderIndex}}}`;
+    placeholders.push(placeholder);
+    options.push(optionText);
+    text = text.replace(match[0], placeholder); // Replace the option markup with a placeholder
+    placeholderIndex++;
+  }
+
+  return { options, placeholders };
+}
+
 
 
 async function streamAssistantMessage(
@@ -65,8 +114,20 @@ async function streamAssistantMessage(
   try {
     await llmStreamingChatGenerate(llmId, messages, null, null, abortSignal,
       (updatedMessage: Partial<DMessage>) => {
+
+        const { options, placeholders } = parseLLMResponse(updatedMessage.text || '');
+
+        // Update the message with parsed text, options, and placeholders
+        const messageToUpdate: Partial<DMessage> = {
+          ...updatedMessage,
+          options: options.length > 0 ? options : undefined,
+          // Include placeholders if options are present
+          placeholders: options.length > 0 ? placeholders : undefined,
+        };
+
+
         // update the message in the store (and thus schedule a re-render)
-        editMessage(updatedMessage);
+        editMessage(messageToUpdate);
 
         // 📢 TTS: first-line
         if (updatedMessage?.text) {

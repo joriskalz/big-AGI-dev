@@ -72,9 +72,11 @@ export interface DMessage {
 
   created: number;                  // created timestamp
   updated: number | null;           // updated timestamp
+  options?: string[];               // only assistant - options for the user to choose from
+  placeholders?: string[];          // only assistant - placeholders for the user to fill in
 }
 
-export function createDMessage(role: DMessage['role'], text: string): DMessage {
+export function createDMessage(role: DMessage['role'], text: string, options?: string[], placeholders?: string[]): DMessage {
   return {
     id: uuidv4(),
     text,
@@ -85,6 +87,8 @@ export function createDMessage(role: DMessage['role'], text: string): DMessage {
     tokenCount: 0,
     created: Date.now(),
     updated: null,
+    options: options, // Include the options in the message if they exist
+    placeholders: placeholders, // Include the placeholders in the message if they exist
   };
 }
 
@@ -143,6 +147,7 @@ interface ChatActions {
 }
 
 type ConversationsStore = ChatState & ChatActions;
+
 
 export const useChatStore = create<ConversationsStore>()(devtools(
   persist(
@@ -312,6 +317,7 @@ export const useChatStore = create<ConversationsStore>()(devtools(
       setMessages: (conversationId: string, newMessages: DMessage[]) =>
         _get()._editConversation(conversationId, conversation => {
           conversation.abortController?.abort();
+          console.log('setMessages', newMessages);   
           return {
             messages: newMessages,
             ...(!!newMessages.length ? {} : {

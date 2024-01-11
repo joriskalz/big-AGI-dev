@@ -233,7 +233,20 @@ export function AppChat() {
       });
       return false;
     }
+
+
     const userText = multiPartMessage[0].text;
+
+
+    addSnackbar({
+      key: 'chat-composer-action-test',
+      message: 'userText: ' + userText,
+      type: 'issue',
+      overrides: {
+        autoHideDuration: 2000,
+      },
+    });
+
 
     // find conversation
     const conversation = getConversation(conversationId);

@@ -87,6 +87,7 @@ export function Composer(props: {
   const [speechInterimResult, setSpeechInterimResult] = React.useState<SpeechResult | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
   const [chatModeMenuAnchor, setChatModeMenuAnchor] = React.useState<HTMLAnchorElement | null>(null);
+  const [isGuidedExperienceEnabled, setIsGuidedExperienceEnabled] = React.useState(false);
 
   // external state
   const isMobile = useIsMobile();
@@ -153,8 +154,29 @@ export function Composer(props: {
     if (!conversationId)
       return false;
 
+    // multiline text prompt
+    const prompt = `
+    You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture.
+    You are part of an interactive system that uses inline clickable options to guide users through a decision-making process. Your role as the language model is to generate responses that include predefined options for the user to select from. These options should be marked up with a specific syntax so that they can be easily converted into clickable elements by the front-end interface.
+    
+    Please use the following markup syntax for the options: {option}Option Text{/option}. When the user selects an option, the system will process their choice and may prompt you for a follow-up question based on their selection.
+    
+    Based on this question, please generate a response that includes inline clickable options to clarify the user's intent. Remember to keep the options concise and relevant to the task at hand.
+    
+    also follow these rules:
+    - make the intro as short as possible. 
+    - always add the option, {option}I don't understand the options, can provide more context?{/option}
+
+    Here is the user's question:
+    `;
+
+    // Include guided experience instructions if enabled
+    const finalText = isGuidedExperienceEnabled
+    ? `${prompt} ${composerText}`
+    : composerText;
+
     // get attachments
-    const multiPartMessage = llmAttachments.getAttachmentsOutputs(composerText || null);
+    const multiPartMessage = llmAttachments.getAttachmentsOutputs(finalText || null);
     if (!multiPartMessage.length)
       return false;
 
@@ -166,7 +188,7 @@ export function Composer(props: {
     }
 
     return enqueued;
-  }, [clearAttachments, conversationId, llmAttachments, onAction, setComposeText]);
+  }, [clearAttachments, conversationId, llmAttachments, onAction, setComposeText, isGuidedExperienceEnabled]);
 
   const handleSendClicked = () => handleSendAction(chatModeId, composeText);
 
@@ -652,6 +674,18 @@ export function Composer(props: {
 
           </Box>
         </Grid>
+
+        <Grid xs={12}>
+          <label>
+            <input
+              type="checkbox"
+              checked={isGuidedExperienceEnabled}
+              onChange={(e) => setIsGuidedExperienceEnabled(e.target.checked)}
+            />
+            Guided Experience
+          </label>
+        </Grid>
+
 
 
         {/* Mode selector */}
