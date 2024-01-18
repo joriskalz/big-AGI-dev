@@ -232,7 +232,8 @@ export function ChatMessage(props: {
   const [selMenuAnchor, setSelMenuAnchor] = React.useState<HTMLElement | null>(null);
   const [selMenuText, setSelMenuText] = React.useState<string | null>(null);
   const [isEditing, setIsEditing] = React.useState(false);
-
+  const [selectedOptions, setSelectedOptions] = React.useState<string[]>([]);
+  
   // external state
   const { cleanerLooks, renderMarkdown, doubleClickToEdit } = useUIPreferencesStore(state => ({
     cleanerLooks: state.zenMode === 'cleaner',
@@ -395,6 +396,11 @@ export function ChatMessage(props: {
     }
   }, [openSelectionMenu]);
 
+  // handleOptionSelect
+  const handleOptionSelect = (option: string) => {
+    console.log(`Option selected: ${option}`);
+    setSelectedOptions(prevOptions => [...prevOptions, option]);
+  };
 
   // prettier upstream errors
   const { isAssistantError, errorMessage } = React.useMemo(
@@ -572,7 +578,7 @@ export function ChatMessage(props: {
                       key={'placeholders-' + index}
                       text={block.content}
                       options={props.message.options || []}
-                      onOptionSelected={(option) => console.log(`Option selected: ${option}`)}
+                      onOptionSelected={handleOptionSelect}
                     />
                   ) : (
                     <RenderMarkdown key={'text-md-' + index} textBlock={block} sx={typographySx} />
