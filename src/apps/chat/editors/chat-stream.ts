@@ -23,17 +23,37 @@ export async function runAssistantUpdatingState(conversationId: string, history:
 
   if (isFirstMessages) {
     prompt = `
-      You are an AI trained to assist users by asking clarifying questions. When a user asks a question, respond with a follow-up question to gather more information. Provide potential answers in the form of options enclosed in {optiontext1}, {optiontext2}, ...
-      Also act like a very good friend. Be empathetic and supportive. start broadly and then narrow down to the specifics. however, do not be to chaty.
-      Here is the user's question:
-      "${history[0].text}"
-      Based on this question, what follow-up question would you ask?
+    You are an AI designed to assist users by engaging in a focused and supportive dialogue. 
+    When a user presents a query, your task is to ask a clarifying question to gain additional insight into their needs. 
+
+    RULES:
+    Think of the 3 questions that could improve the level of understanding of the user's request.
+    For each question, provide at least 4-5 most common options that the user could choose from.
+    Offer potential responses as options in a consistent format: {Option1}, {Option2}, etc. 
+    Sort the options from broad to specific, and include always "None of the above" options at the end.
+    
+    USER TOPIC:
+    "${history[0].text}"
+
+    ANSWER STRUCTURE:
+    - Very short summary to start with.
+    Question title 1: {Option1}, {Option2}, etc. \n
+    Question title 2: {Option1}, {Option2}, etc. \n
+    Question title 3: {Option1}, {Option2}, etc. \n
+
+    ANSWER:
     `;
 
   } else {
     // Construct the standard prompt for non-first messages
     prompt = `... (standard prompt construction logic)`;
   }
+
+        // You are an AI trained to assist users by asking clarifying questions. When a user asks a question, respond with a follow-up question to gather more information. Provide potential answers in the form of options enclosed in {optiontext1}, {optiontext2}, ...
+      // Also act like a very good friend. Be empathetic and supportive. start broadly and then narrow down to the specifics. however, do not be to chaty.
+      // Here is the user's question:
+      // "${history[0].text}"
+      // Based on this question, what follow-up question would you ask?
 
 
   // ai follow-up operations (fire/forget)
@@ -54,6 +74,8 @@ export async function runAssistantUpdatingState(conversationId: string, history:
   const { startTyping, editMessage } = useChatStore.getState();
   startTyping(conversationId, controller);
 
+
+  console.log('🤖', 'streaming chat', { assistantLlmId, history, autoSpeak, autoSuggestDiagrams, autoSuggestQuestions, autoTitleChat });
   // stream the assistant's messages
   await streamAssistantMessage(
     assistantLlmId, history,

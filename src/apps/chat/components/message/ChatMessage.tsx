@@ -569,6 +569,7 @@ export function ChatMessage(props: {
                 ) : renderMarkdown && props.noMarkdown !== true && !fromSystem && !(fromUser && block.content.startsWith('/')) ? (
                   props.message.placeholders && props.message.placeholders.length > 0 ? (
                     <RenderTextWithPlaceholders
+                      key={'placeholders-' + index}
                       text={block.content}
                       options={props.message.options || []}
                       onOptionSelected={(option) => console.log(`Option selected: ${option}`)}

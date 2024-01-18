@@ -1,6 +1,6 @@
 // RenderTextWithPlaceholders.tsx
 import * as React from 'react';
-import { Button } from '@mui/joy';
+import { Button, Chip, Typography } from '@mui/joy';
 
 interface RenderTextWithPlaceholdersProps {
   text: string;
@@ -45,14 +45,21 @@ const RenderTextWithPlaceholders: React.FC<RenderTextWithPlaceholdersProps> = ({
           // Create a button for the option
           elements.push(
             <Button
-              key={i}
-              variant="outlined"
-              size="sm"
-              sx={{ mx: '0.25rem' }}
-              onClick={() => handleOptionClick(optionText)}
-            >
-              {optionText}
-            </Button>
+            key={i}
+            variant="soft"
+            color='primary'
+            size="sm"
+            sx={{
+              mx: '0.15rem',
+                my: '0.15rem',
+              fontSize: 'inherit', // Use the same font size as surrounding text
+              lineHeight: 'normal', // Use normal line height to match surrounding text
+              verticalAlign: 'baseline', // Align the baseline of the chip with the text
+            }}
+            onClick={() => handleOptionClick(optionText)}
+          >
+            {optionText}
+          </Button>
           );
         } else {
           // If not an option, render the text as is
@@ -73,7 +80,10 @@ const RenderTextWithPlaceholders: React.FC<RenderTextWithPlaceholdersProps> = ({
     return elements;
   };
 
-  return <div>{processText(text, options)}</div>;
-};
+  return (
+    <Typography sx={{ mx: 1.5, alignItems: 'baseline', overflowWrap: 'anywhere', whiteSpace: 'break-spaces' }}>
+      {processText(text, options)}
+    </Typography>
+  );};
 
 export default RenderTextWithPlaceholders;
