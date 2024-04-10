@@ -64,6 +64,7 @@ export function AppChat() {
   const showNextTitle = React.useRef(false);
   const composerTextAreaRef = React.useRef<HTMLTextAreaElement>(null);
   const [_selectedFolderId, setSelectedFolderId] = React.useState<string | null>(null);
+  const [selectedOptions, setSelectedOptions] = React.useState<string[]>([]);
 
   // external state
   const theme = useTheme();
@@ -388,6 +389,22 @@ export function AppChat() {
   ], [focusedConversationId, handleConversationBranch, handleConversationDelete, handleConversationNew, handleMessageRegenerateLast, handleNavigateHistory, handleOpenChatLlmOptions, isFocusedChatEmpty]);
   useGlobalShortcuts(shortcuts);
 
+  // Handler for when an option is selected
+  const handleOptionSelected = (option: string) => {
+    setSelectedOptions((prevOptions) => {
+      // Toggle the option in the array
+      if (prevOptions.includes(option)) {
+        return prevOptions.filter((opt) => opt !== option);
+      } else {
+        return [...prevOptions, option];
+      }
+    });
+  };
+
+  const handleClearOptions = () => {
+    setSelectedOptions([]);
+  }
+
   // Pluggable ApplicationBar components
 
   const centerItems = React.useMemo(() =>
@@ -486,6 +503,8 @@ export function AppChat() {
                 onTextDiagram={handleTextDiagram}
                 onTextImagine={handleTextImagine}
                 onTextSpeak={handleTextSpeak}
+                selectedOptions={selectedOptions}
+                onOptionSelected={handleOptionSelected}          
                 sx={{
                   backgroundColor: themeBgApp,
                   minHeight: '100%', // ensures filling of the blank space on newer chats
@@ -523,6 +542,8 @@ export function AppChat() {
       isDeveloperMode={focusedSystemPurposeId === 'Developer'}
       onAction={handleComposerAction}
       onTextImagine={handleTextImagine}
+      selectedOptions={selectedOptions}
+      onHandleClearOptions={handleClearOptions}
       sx={{
         zIndex: 21, // position: 'sticky', bottom: 0,
         backgroundColor: themeBgAppChatComposer,

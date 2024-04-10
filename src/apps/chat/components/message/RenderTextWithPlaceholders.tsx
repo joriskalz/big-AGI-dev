@@ -1,23 +1,23 @@
 // RenderTextWithPlaceholders.tsx
 import * as React from 'react';
 import { Button, Chip, Typography } from '@mui/joy';
+import CheckIcon from '@mui/icons-material/Check';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
 interface RenderTextWithPlaceholdersProps {
   text: string;
   options: string[];
+  selectedOptions: string[];
   onOptionSelected: (option: string) => void;
 }
 
 const RenderTextWithPlaceholders: React.FC<RenderTextWithPlaceholdersProps> = ({
   text,
   options,
+  selectedOptions,
   onOptionSelected,
 }) => {
-  // Function to handle option selection
-  const handleOptionClick = (option: string) => {
-    onOptionSelected(option);
-  };
-
+  
   // Function to process the text and return an array of JSX elements
   const processText = (text: string, options: string[]) => {
     const elements: JSX.Element[] = [];
@@ -42,10 +42,12 @@ const RenderTextWithPlaceholders: React.FC<RenderTextWithPlaceholdersProps> = ({
 
         // Check if the accumulated text is an option
         if (options.includes(optionText)) {
+          const isSelected = selectedOptions.includes(optionText);
+
           // Create a button for the option
           elements.push(
             <Button
-            key={i}
+            startDecorator={isSelected ? <CheckIcon /> : <RadioButtonUncheckedIcon />}
             variant="soft"
             color='primary'
             size="sm"
@@ -56,7 +58,7 @@ const RenderTextWithPlaceholders: React.FC<RenderTextWithPlaceholdersProps> = ({
               lineHeight: 'normal', // Use normal line height to match surrounding text
               verticalAlign: 'baseline', // Align the baseline of the chip with the text
             }}
-            onClick={() => handleOptionClick(optionText)}
+            onClick={() => onOptionSelected(optionText)}
           >
             {optionText}
           </Button>

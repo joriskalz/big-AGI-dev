@@ -53,6 +53,7 @@ import { ChatModeMenu } from './ChatModeMenu';
 import { TokenBadgeMemo } from './TokenBadge';
 import { TokenProgressbarMemo } from './TokenProgressbar';
 import { useComposerStartupText } from './store-composer';
+import { on } from 'events';
 
 
 const animationStopEnter = keyframes`
@@ -70,6 +71,8 @@ const animationStopEnter = keyframes`
 /**
  * A React component for composing messages, with attachments and different modes.
  */
+//   const handleOptionSelected = (option: string) => {
+
 export function Composer(props: {
   chatLLM: DLLM | null;
   composerTextAreaRef: React.RefObject<HTMLTextAreaElement>;
@@ -78,6 +81,8 @@ export function Composer(props: {
   isDeveloperMode: boolean;
   onAction: (chatModeId: ChatModeId, conversationId: DConversationId, multiPartMessage: ComposerOutputMultiPart) => boolean;
   onTextImagine: (conversationId: DConversationId, text: string) => void;
+  selectedOptions: string[];
+  onHandleClearOptions: () => void;
   sx?: SxProps;
 }) {
 
@@ -118,6 +123,9 @@ export function Composer(props: {
   const isDesktop = !isMobile;
   const chatLLMId = props.chatLLM?.id || null;
 
+  // extract onOptionSelected from props
+  const { onHandleClearOptions } = props;
+
   // attachments derived state
 
   const llmAttachments = useLLMAttachments(_attachments, chatLLMId);
@@ -144,6 +152,22 @@ export function Composer(props: {
       setComposeText(startupText);
     }
   }, [setComposeText, setStartupText, startupText]);
+
+  // Effect: add the selectedOptions to the text
+  React.useEffect(() => {
+    console.log('Composer: selectedOptions changed', props.selectedOptions);
+    // Append them to the start of the text only if there are selected options
+    if (props.selectedOptions.length > 0) {
+      const optionsText = props.selectedOptions.join(', ');
+      // Check if the composeText already starts with the selected options to avoid duplication
+      if (!composeText.startsWith(optionsText)) {
+        setComposeText(`${optionsText}, ${composeText}`.trim());
+      }
+    }
+  }, [props.selectedOptions, setComposeText, composeText]);
+
+
+
 
 
   // Primary button
@@ -185,10 +209,11 @@ export function Composer(props: {
     if (enqueued) {
       clearAttachments();
       setComposeText('');
+      onHandleClearOptions();
     }
 
     return enqueued;
-  }, [clearAttachments, conversationId, llmAttachments, onAction, setComposeText, isGuidedExperienceEnabled]);
+  }, [clearAttachments, conversationId, llmAttachments, onAction, setComposeText, isGuidedExperienceEnabled, onHandleClearOptions]);
 
   const handleSendClicked = () => handleSendAction(chatModeId, composeText);
 

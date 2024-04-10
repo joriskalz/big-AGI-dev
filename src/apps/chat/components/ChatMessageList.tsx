@@ -32,6 +32,8 @@ export function ChatMessageList(props: {
   onTextDiagram: (diagramConfig: DiagramConfig | null) => Promise<any>,
   onTextImagine: (conversationId: DConversationId, selectedText: string) => Promise<any>,
   onTextSpeak: (selectedText: string) => Promise<any>,
+  selectedOptions: string[];
+  onOptionSelected: (option: string) => void;
   sx?: SxProps,
 }) {
 
@@ -229,6 +231,8 @@ export function ChatMessageList(props: {
             onTextDiagram={handleTextDiagram}
             onTextImagine={handleTextImagine}
             onTextSpeak={handleTextSpeak}
+            selectedOptions={props.selectedOptions}
+            onOptionSelected={props.onOptionSelected}  
           />
 
         ),
